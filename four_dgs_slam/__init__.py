@@ -1,4 +1,4 @@
 #!/usr/bin/env python3
-from .node import SLAMNode
+from .node import GSICPSLAMNode
 
-__all__ = ['SLAMNode']
+__all__ = ['GSICPSLAMNode']

@@ -1,51 +1,72 @@
-FROM osrf/ros:humble-desktop
 
-# Set environment variables
+# GS ICP SLAM ROS2 Wrapper - Dockerfile
+
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+
+# Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
-ENV LC_ALL=C.UTF-8
-ENV LANG=C.UTF-8
 
-# Install basic system dependencies and tools
-RUN apt-get -o APT::Sandbox::User=root -o Dir::Cache::archives="/tmp/" update && \
-    apt-get -o APT::Sandbox::User=root -o Dir::Cache::archives="/tmp/" install -y --no-install-recommends \
-    wget \
+# Install basics
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    curl \
     git \
+    wget \
+    build-essential \
+    cmake \
     python3-pip \
-    ros-humble-ament-cmake-python \
+    python3-dev \
+    libpcl-dev \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-# Upgrade pip first
-RUN python3 -m pip install --upgrade pip
+# Install ROS2 Humble
+RUN add-apt-repository universe \
+    && curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null \
+    && apt-get update && apt-get install -y \
+    ros-humble-desktop \
+    ros-humble-cv-bridge \
+    ros-humble-perception-pcl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install PyTorch with CUDA 11.7 support
-RUN pip3 install torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
+# Install Python deps
+# GS-ICP-SLAM asks for torch 2.0.0+cu118
+RUN pip3 install --no-cache-dir \
+    torch==2.0.0+cu118 \
+    torchvision==0.15.1+cu118 \
+    torchaudio==2.0.1 \
+    --index-url https://download.pytorch.org/whl/cu118
 
-COPY requirements.txt /tmp/requirements.txt
-RUN pip3 install -r /tmp/requirements.txt && rm /tmp/requirements.txt
+RUN pip3 install --no-cache-dir \
+    opencv-python \
+    open3d \
+    scipy \
+    tqdm \
+    torchmetrics \
+    plyfile \
+    rerun-sdk
 
-# Source ROS 2 setup
-RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
+# Install submodules
+# We copy them into the image to build them
+WORKDIR /app/submodules
+ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0 7.5 8.0 8.6+PTX"
+ENV TCNN_CUDA_ARCHITECTURES=86;80;75;70;61;60
+COPY submodules/diff-gaussian-rasterization /app/submodules/diff-gaussian-rasterization
+RUN pip3 install /app/submodules/diff-gaussian-rasterization
 
-# Create workspace
-WORKDIR /workspace
-RUN mkdir -p src/4dgs-slam-ros2
+COPY submodules/simple-knn /app/submodules/simple-knn
+RUN pip3 install /app/submodules/simple-knn
 
-# Copy source code
-COPY . /workspace/src/4dgs-slam-ros2/
+COPY submodules/fast_gicp /app/submodules/fast_gicp
+WORKDIR /app/submodules/fast_gicp
+RUN mkdir build && cd build && cmake .. && make -j$(nproc) && cd .. && python3 setup.py install
 
-# Build the workspace
-# We need to setup CUDA environment for compilation if possible, but for now we try to build without explicit CUDA toolkit if not needed for core build
-# (The user code might fail if it needs nvcc, but let's see)
-RUN . /opt/ros/humble/setup.sh && \
-    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+# Setup workspace
+WORKDIR /ws/src/four_dgs_slam
+# We will mount the source code here
+# But for building potentially we need dependencies...
 
-# Download pretrained YOLOv9 model
-RUN mkdir -p /workspace/src/4dgs-slam-ros2/pretrained && \
-    wget https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e-seg.pt -P /workspace/src/4dgs-slam-ros2/pretrained
-
-# Set entrypoint
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["bash"]
+# Env setup
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
