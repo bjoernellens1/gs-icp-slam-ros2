@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ROS
+devel/
+logs/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Project specific
+*.log
+*.tar.gz
+*.zip
+tmp/
+temp/
+
+# Data and results
+results/
+checkpoints/
+keyframes/
+backups/
+saved_data/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Pretrained models
+pretrained/
+
+# Documentation
+docs/_build/
+site/

@@ -1,0 +1,142 @@
+4dgs-slam-ros2
+===============
+
+A complete ROS2 package for the 4D Gaussian Splatting SLAM system.
+
+## Key Features
+
+- **Full ROS2 Integration**: Complete node implementation with proper ROS2 standards
+- **Real-time Performance**: Optimized for real-time SLAM processing
+- **Dynamic Scene Reconstruction**: Handles static and dynamic environments
+- **Multiple Launch Options**: Basic, bag playback, and visualization configurations
+- **Comprehensive Documentation**: Extensive guides and examples
+- **Production Ready**: Designed for real-world robotics applications
+
+## Quick Setup
+
+```bash
+# Install the package
+cd ~/dev
+git clone https://github.com/yourusername/4dgs-slam-ros2.git
+cd 4dgs-slam-ros2
+
+# Run setup script
+python3 scripts/install.py --pretrained
+
+# Run with a bag file
+ros2 run 4dgs_slam 4dgs_slam_node
+```
+
+## Project Structure
+
+```
+4dgs-slam-ros2/
+├── 4dgs_slam_ros2/          # Source modules
+│   ├── node.py              # SLAM node implementation
+│   ├── parameters.py        # Configuration management
+│   └── launch_helpers.py    # Launch utilities
+├── config/                   # Configuration files
+│   └── slam_config.yaml     # Main configuration
+├── launch/                   # ROS2 launch files
+│   ├── 4dgs_slam_basic.launch.py
+│   ├── 4dgs_slam_with_bag.launch.py
+│   └── 4dgs_slam_visualization.launch.py
+├── scripts/                  # Utility scripts
+│   ├── install.py           # Setup script
+│   └── run_slam.py          # SLAM runner
+├── docs/                     # Documentation
+│   ├── API.md               # Complete API reference
+│   ├── TUTORIALS.md         # Usage tutorials
+│   ├── ADVANCED.md          # Advanced techniques
+│   ├── DEVELOPMENT.md       # Development guide
+│   └── CONTRIBUTING.md      # Contribution guidelines
+├── examples/                 # Usage examples
+├── tests/                    # Test suite
+├── README.md                 # Main documentation
+└── CHANGELOG.md              # Version history
+```
+
+## Documentation
+
+- **[📖 README](README.md)**: Complete package overview and installation
+- **[📖 API Reference](docs/API.md)**: Detailed API documentation
+- **[📖 Tutorials](docs/TUTORIALS.md)**: Step-by-step usage guides
+- **[📖 Advanced Topics](docs/ADVANCED.md)**: Performance optimization
+- **[📖 Development Guide](docs/DEVELOPMENT.md)**: For developers
+- **[📖 Contributing Guide](docs/CONTRIBUTING.md)**: How to contribute
+
+## Installation
+
+### System Requirements
+
+- Ubuntu 20.04/22.04
+- ROS 2 Humble or Rolling
+- NVIDIA GPU with CUDA 11.x
+- Python 3.8+
+
+### Quick Install
+
+```bash
+cd ~/dev/4dgs-slam-ros2
+python3 scripts/install.py --pretrained
+```
+
+## Usage
+
+### Basic Usage
+
+```bash
+ros2 run 4dgs_slam 4dgs_slam_node
+```
+
+### With Bag File
+
+```bash
+ros2 run 4dgs_slam 4dgs_slam_node
+# In another terminal: ros2 bag play your_bag.bag --clock
+```
+
+### With Visualization
+
+```bash
+ros2 launch 4dgs_slam 4dgs_slam_visualization.launch.py
+```
+
+## ROS2 Topics
+
+Published Topics:
+- `/slam/odometry` - Odometry estimates
+- `/slam/pose` - Current pose
+- `/slam/trajectory` - Trajectory points
+- `/slam/keyframes` - Extracted keyframes
+- `/slam/statistics` - Performance statistics
+
+## Getting Started
+
+1. **Read the README** - Comprehensive setup and usage guide
+2. **Try the tutorials** - Step-by-step examples
+3. **Customize configuration** - Modify `config/slam_config.yaml`
+4. **Run experiments** - Process your own data
+
+## Support
+
+For issues, questions, or contributions, please visit the GitHub repository.
+
+## Citation
+
+```bibtex
+@article{li20254d,
+  title={4{D} {G}aussian {S}platting {SLAM}},
+  author={Li, Yanyan and Fang, Youxu and Zhu, Zunjie and Li, Kunyi and Ding, Yong and Tombari, Federico},
+  journal={arXiv preprint arXiv:2503.16710},
+  year={2025}
+}
+```
+
+## License
+
+MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+Note: The original 4DGS-SLAM paper and implementation by Yanyan Li et al. can be found at: https://github.com/yanyan-li/4DGS-SLAM

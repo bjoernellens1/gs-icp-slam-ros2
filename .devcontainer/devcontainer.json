@@ -1,0 +1,26 @@
+{
+    "name": "4dgs-slam-ros2",
+    "build": {
+        "dockerfile": "../Dockerfile",
+        "context": ".."
+    },
+    "runArgs": [
+        "--gpus", "all",
+        "--net=host",
+        "--env=DISPLAY=${localEnv:DISPLAY}",
+        "--env=QT_X11_NO_MITSHM=1",
+        "--volume=/tmp/.X11-unix:/tmp/.X11-unix"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-iot.vscode-ros"
+            ]
+        }
+    },
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/src/4dgs-slam-ros2,type=bind",
+    "workspaceFolder": "/workspace/src/4dgs-slam-ros2",
+    "postCreateCommand": "bash -c 'source /opt/ros/humble/setup.bash && colcon build --symlink-install'"
+}

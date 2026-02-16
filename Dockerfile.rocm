@@ -1,0 +1,72 @@
+FROM osrf/ros:humble-desktop
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+# Explicitly set HIP_PLATFORM to amd
+ENV HIP_PLATFORM=amd
+
+# Install basic system dependencies and tools
+RUN apt-get -o APT::Sandbox::User=root -o Dir::Cache::archives="/tmp/" update && \
+    apt-get -o APT::Sandbox::User=root -o Dir::Cache::archives="/tmp/" install -y --no-install-recommends \
+    wget \
+    git \
+    python3-pip \
+    ros-humble-ament-cmake-python \
+    software-properties-common \
+    libopenblas-dev \
+    gpg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ROCm 6.2 (latest stable for Ubuntu 22.04 at time of writing)
+# Add ROCm repository
+RUN mkdir --parents --mode=0755 /etc/apt/keyrings && \
+    wget https://repo.radeon.com/rocm/rocm.gpg.key -O - | gpg --dearmor | tee /etc/apt/keyrings/rocm.gpg > /dev/null && \
+    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/6.2 jammy main" | tee /etc/apt/sources.list.d/rocm.list && \
+    printf 'Package: *\nPin: release o=repo.radeon.com\nPin-Priority: 600' | tee /etc/apt/preferences.d/rocm-pin-600 && \
+    apt-get -o APT::Sandbox::User=root -o Dir::Cache::archives="/tmp/" update && \
+    apt-get -o APT::Sandbox::User=root -o Dir::Cache::archives="/tmp/" install -y --no-install-recommends \
+    rocm-dev \
+    rocm-libs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add ROCm to PATH
+ENV PATH=$PATH:/opt/rocm/bin:/opt/rocm/llvm/bin
+
+# Install Python dependencies
+# Upgrade pip first
+RUN python3 -m pip install --upgrade pip
+
+# Install PyTorch with ROCm 6.1 support (compatible with ROCm 6.2 driver)
+# PyTorch 2.4.0+ is required for ROCm 6.1 support
+RUN pip3 install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/rocm6.1
+
+COPY requirements.txt /tmp/requirements.txt
+# Remove the torch + cu117 lines from requirements.txt to avoid conflict/reinstall
+RUN sed -i '/torch/d' /tmp/requirements.txt && \
+    pip3 install -r /tmp/requirements.txt && rm /tmp/requirements.txt
+
+# Source ROS 2 setup
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
+
+# Create workspace
+WORKDIR /workspace
+RUN mkdir -p src/4dgs-slam-ros2
+
+# Copy source code
+COPY . /workspace/src/4dgs-slam-ros2/
+
+# Build the workspace
+RUN . /opt/ros/humble/setup.sh && \
+    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+# Download pretrained YOLOv9 model
+RUN mkdir -p /workspace/src/4dgs-slam-ros2/pretrained && \
+    wget https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e-seg.pt -P /workspace/src/4dgs-slam-ros2/pretrained
+
+# Set entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["bash"]

@@ -1,0 +1,9 @@
+build/
+install/
+log/
+.git/
+*.pyc
+__pycache__/
+.devcontainer/
+.vscode/
+.idea/
