@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>four_dgs_slam</name>
+  <name>gs_icp_slam</name>
   <version>1.0.0</version>
-  <description>ROS2 package for 4D Gaussian Splatting SLAM system</description>
+  <description>ROS2 wrapper for GS-ICP-SLAM system</description>
   <maintainer email="your.email@example.com">Your Name</maintainer>
   <license>MIT</license>
 

@@ -1,4 +1,4 @@
-# 4DGS-SLAM ROS2 Package - Contributing Guide
+# GS-ICP-SLAM ROS2 Package - Contributing Guide
 
 This document provides guidelines and instructions for contributing to the 4D Gaussian Splatting SLAM ROS2 package.
 
@@ -60,8 +60,8 @@ pytest tests/
 ## Project Structure
 
 ```
-4dgs_slam_ros2/
-├── src/4dgs_slam_ros2/          # Python source code
+gs_icp_slam_ros2/
+├── src/gs_icp_slam_ros2/          # Python source code
 ├── tests/                       # Test files
 ├── examples/                    # Usage examples
 ├── config/                      # Configuration files
@@ -111,8 +111,8 @@ pytest tests/
 # Fork the repository on GitHub
 
 # Clone your fork locally
-git clone https://github.com/yourusername/4dgs_slam_ros2.git
-cd 4dgs_slam_ros2
+git clone https://github.com/yourusername/gs_icp_slam_ros2.git
+cd gs_icp_slam_ros2
 
 # Create a feature branch
 git checkout -b feature/your-feature-name
@@ -126,10 +126,10 @@ Write your code, follow the coding standards, and document your changes thorough
 
 ```bash
 # Build the package
-colcon build --packages-select 4dgs_slam --symlink-install
+colcon build --packages-select gs_icp_slam --symlink-install
 
 # Run all tests
-colcon test --packages-select 4dgs_slam
+colcon test --packages-select gs_icp_slam
 colcon test-result --verbose
 
 # Run specific tests
@@ -256,7 +256,7 @@ Resolves #123
 
 import unittest
 from unittest.mock import Mock, patch
-from 4dgs_slam_ros2.node import SLAMNode
+from gs_icp_slam_ros2.node import SLAMNode
 
 class TestSLAMCore(unittest.TestCase):
     def setUp(self):
@@ -276,7 +276,7 @@ class TestSLAMCore(unittest.TestCase):
 
 ```bash
 # Test end-to-end workflows
-colcon test --packages-select 4dgs_slam --event-handlers console_direct+
+colcon test --packages-select gs_icp_slam --event-handlers console_direct+
 ```
 
 ## Documentation Requirements
@@ -424,4 +424,4 @@ For more information, refer to:
 - [Main README](README.md)
 - [Developer Guide](DEVELOPMENT.md)
 - [API Reference](API.md)
-- [Issues](https://github.com/yourusername/4dgs_slam_ros2/issues)
+- [Issues](https://github.com/yourusername/gs_icp_slam_ros2/issues)

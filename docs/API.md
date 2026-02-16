@@ -1,6 +1,6 @@
-# 4DGS-SLAM ROS2 Package - API Reference
+# GS-ICP-SLAM ROS2 Package - API Reference
 
-This document provides detailed information about the classes, methods, and interfaces provided by the 4DGS-SLAM ROS2 package.
+This document provides detailed information about the classes, methods, and interfaces provided by the GS-ICP-SLAM ROS2 package.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ This document provides detailed information about the classes, methods, and inte
 
 ## Overview
 
-The 4DGS-SLAM ROS2 package provides a comprehensive set of classes and functions for integrating the 4D Gaussian Splatting SLAM system with ROS2. The package is designed for real-time SLAM processing, dynamic scene reconstruction, and integration with ROS2 navigation and perception systems.
+The GS-ICP-SLAM ROS2 package provides a comprehensive set of classes and functions for integrating the 4D Gaussian Splatting SLAM system with ROS2. The package is designed for real-time SLAM processing, dynamic scene reconstruction, and integration with ROS2 navigation and perception systems.
 
 ## Classes
 
@@ -332,7 +332,7 @@ For real-time applications, use performance-optimized configuration:
     'keyframe_angle': 0.6,
 },
 'system': {
-    'working_directory': '/tmp/4dgs_slam_fast',
+    'working_directory': '/tmp/gs_icp_slam_fast',
 },
 'monitoring': {
     'publish_statistics': False,
@@ -379,8 +379,8 @@ The SLAM node provides the following services:
 
 | Service Name | Type | Description |
 |--------------|------|-------------|
-| `/slam/get_reconstruction` | `4dgs_slam_ros2/srv/GetReconstruction` | Request reconstruction data |
-| `/slam/save_checkpoint` | `4dgs_slam_ros2/srv/SaveCheckpoint` | Save current state to checkpoint |
+| `/slam/get_reconstruction` | `gs_icp_slam/srv/GetReconstruction` | Request reconstruction data |
+| `/slam/save_checkpoint` | `gs_icp_slam/srv/SaveCheckpoint` | Save current state to checkpoint |
 
 ## Error Handling
 

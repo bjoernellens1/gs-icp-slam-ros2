@@ -36,7 +36,7 @@ class RealtimeSLAMConfig:
             'publish_statistics': False,
         },
         'system': {
-            'working_directory': '/tmp/4dgs_slam_realtime',
+            'working_directory': '/tmp/gs_icp_slam_realtime',
             'save_results': True,
             'save_format': 'ply',
         }
@@ -145,7 +145,7 @@ def create_test_config():
 def main():
     """Main example runner"""
     
-    print("4DGS-SLAM Real-time Configuration Examples\n")
+    print("GS-ICP-SLAM Real-time Configuration Examples\n")
     
     # Example 1: Real-time configuration
     print("Example 1: Real-time Performance Configuration")

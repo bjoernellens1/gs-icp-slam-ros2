@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-API Reference for 4DGS-SLAM ROS2 Package
+API Reference for GS-ICP-SLAM ROS2 Package
 
 This document provides detailed information about the available classes and methods
-from the 4DGS-SLAM ROS2 package.
+from the GS-ICP-SLAM ROS2 package.
 """
 
 from typing import Optional, List, Dict
@@ -39,7 +39,7 @@ class SLAMParameters:
     """
     Configuration parameters for SLAM system
     
-    This class manages all configuration parameters used by the 4DGS-SLAM system.
+    This class manages all configuration parameters used by the GS-ICP-SLAM system.
     
     Attributes:
         config: Dictionary containing all configuration parameters
@@ -86,7 +86,7 @@ class SLAMParameters:
                 'use_tensor_cores': True
             },
             'system': {
-                'working_directory': '/tmp/4dgs_slam',
+                'working_directory': '/tmp/gs_icp_slam',
                 'log_level': 'INFO',
                 'enable_gui': False,
                 'save_results': True,
@@ -177,7 +177,7 @@ class SLAMParameters:
 
 class SLAMNode:
     """
-    Main SLAM node for 4DGS-SLAM system
+    Main SLAM node for GS-ICP-SLAM system
     
     This class provides the core functionality for 4D Gaussian Splatting SLAM,
     integrating with ROS2 for real-time processing and visualization.

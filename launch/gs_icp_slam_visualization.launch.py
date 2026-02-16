@@ -22,9 +22,9 @@ def generate_launch_description():
     
     # 4DGS-SLAM node
     slam_node = Node(
-        package='four_dgs_slam',
-        executable='four_dgs_slam_node',
-        name='four_dgs_slam_node',
+        package='gs_icp_slam',
+        executable='gs_icp_slam_node',
+        name='gs_icp_slam_node',
         output='screen',
     )
     

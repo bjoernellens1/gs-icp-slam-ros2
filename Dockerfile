@@ -64,7 +64,7 @@ WORKDIR /app/submodules/fast_gicp
 RUN mkdir build && cd build && cmake .. && make -j$(nproc) && cd .. && python3 setup.py install
 
 # Setup workspace
-WORKDIR /ws/src/four_dgs_slam
+WORKDIR /ws/src/gs_icp_slam
 # We will mount the source code here
 # But for building potentially we need dependencies...
 

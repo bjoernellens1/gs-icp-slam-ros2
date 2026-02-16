@@ -1,4 +1,4 @@
-# 4DGS-SLAM ROS2 Package - Development Guide
+# GS-ICP-SLAM ROS2 Package - Development Guide
 
 This document provides guidelines and best practices for developing, extending, and contributing to the 4D Gaussian Splatting SLAM ROS2 package.
 
@@ -37,15 +37,15 @@ pip install pre-commit pytest pytest-cov black flake8 mypy
 ```bash
 # Clone repository
 cd ~/dev
-git clone https://github.com/yourusername/4dgs_slam_ros2.git
-cd 4dgs_slam_ros2
+git clone https://github.com/yourusername/gs_icp_slam_ros2.git
+cd gs_icp_slam_ros2
 
 # Install pre-commit hooks
 pre-commit install
 
 # Setup development environment
-conda create -n 4dgs-slam-dev python=3.8 -y
-conda activate 4dgs-slam-dev
+conda create -n gs-icp-slam-dev python=3.8 -y
+conda activate gs-icp-slam-dev
 source /opt/ros/humble/setup.bash
 pip install -e .
 ```
@@ -53,10 +53,10 @@ pip install -e .
 ## Code Structure
 
 ```
-4dgs_slam_ros2/
+gs_icp_slam_ros2/
 ├── CMakeLists.txt                      # CMake build configuration
 ├── package.xml                         # ROS2 package manifest
-├── 4dgs_slam_node.py                  # Package entry point
+├── gs_icp_slam_node.py                  # Package entry point
 ├── docs/                              # Documentation directory
 │   ├── API.md                         # Complete API reference
 │   ├── TUTORIALS.md                   # Step-by-step tutorials
@@ -66,13 +66,13 @@ pip install -e .
 │   ├── slam_config.yaml               # Main configuration
 │   └── performance_config.yaml        # Performance settings
 ├── launch/                            # ROS2 launch files
-│   ├── 4dgs_slam_basic.launch.py      # Basic launch
-│   ├── 4dgs_slam_with_bag.launch.py   # Bag playback launch
-│   └── 4dgs_slam_visualization.launch.py  # Visualization launch
+│   ├── gs_icp_slam_basic.launch.py      # Basic launch
+│   ├── gs_icp_slam_with_bag.launch.py   # Bag playback launch
+│   └── gs_icp_slam_visualization.launch.py  # Visualization launch
 ├── scripts/                           # Utility scripts
 │   ├── run_slam.py                    # SLAM runner script
 │   └── setup_development_env.sh       # Setup script
-├── src/4dgs_slam_ros2/
+├── src/gs_icp_slam_ros2/
 │   ├── __init__.py                    # Package initialization
 │   ├── parameters.py                  # Configuration management
 │   ├── node.py                        # Main SLAM node implementation
@@ -175,7 +175,7 @@ class MySLAMNode(Node):
 ### Extension Example: Custom Feature Extractor
 
 ```python
-# Create new module: src/4dgs_slam_ros2/custom_features.py
+# Create new module: src/gs_icp_slam_ros2/custom_features.py
 
 class CustomFeatureExtractor:
     """Custom feature extraction implementation"""
@@ -240,7 +240,7 @@ def get_python_requirements():
         return [line.strip() for line in f if line.strip()]
 
 setup(
-    name='4dgs_slam_ros2',
+    name='gs_icp_slam_ros2',
     packages=find_packages(),
     install_requires=get_python_requirements(),
     extras_require={
@@ -257,12 +257,12 @@ setup(
 ### C++ Extension Development
 
 ```cpp
-// Add C++ extension in src/4dgs_slam_ros2_cpp/
+// Add C++ extension in src/gs_icp_slam_ros2_cpp/
 // Example: performance_optimization.cpp
 
-#include "4dgs_slam_ros2_cpp/performance_optimization.hpp"
+#include "gs_icp_slam_ros2_cpp/performance_optimization.hpp"
 
-namespace 4dgs_slam_ros2::cpp {
+namespace gs_icp_slam_ros2::cpp {
 
 void compute_raycasting_optimized(
     const GaussianField& field,
@@ -280,15 +280,15 @@ void compute_raycasting_optimized(
 ```cmake
 # Update CMakeLists.txt for C++ extensions
 
-add_library(4dgs_slam_ros2_cpp performance_optimization.cpp)
-target_link_libraries(4dgs_slam_ros2_cpp PRIVATE 
+add_library(gs_icp_slam_ros2_cpp performance_optimization.cpp)
+target_link_libraries(gs_icp_slam_ros2_cpp PRIVATE 
     rclcpp
     sensor_msgs
     geometry_msgs
     cv_bridge
 )
 
-ament_target_dependencies(4dgs_slam_ros2_cpp
+ament_target_dependencies(gs_icp_slam_ros2_cpp
     rclcpp
     sensor_msgs
     geometry_msgs
@@ -304,7 +304,7 @@ ament_target_dependencies(4dgs_slam_ros2_cpp
 
 import unittest
 from pathlib import Path
-from 4dgs_slam_ros2.parameters import SLAMParameters
+from gs_icp_slam_ros2.parameters import SLAMParameters
 
 class TestSLAMParameters(unittest.TestCase):
     """Unit tests for SLAM parameters"""
@@ -335,14 +335,14 @@ class TestSLAMParameters(unittest.TestCase):
 
 ```bash
 # Run tests
-colcon test --packages-select 4dgs_slam
+colcon test --packages-select gs_icp_slam
 colcon test-result --verbose
 
 # Run specific test
 pytest tests/test_parameters.py -v
 
 # Generate coverage report
-pytest tests/ --cov=4dgs_slam --cov-report=html
+pytest tests/ --cov=gs_icp_slam --cov-report=html
 ```
 
 ### Testing Checklist
@@ -588,10 +588,10 @@ jobs:
         pip install pytest pytest-cov
     
     - name: Run tests
-      run: colcon test --packages-select 4dgs_slam
+      run: colcon test --packages-select gs_icp_slam
     
     - name: Generate coverage report
-      run: colcon test --packages-select 4dgs_slam --event-handlers+ console_direct+
+      run: colcon test --packages-select gs_icp_slam --event-handlers+ console_direct+
 ```
 
 ## Code Review Checklist

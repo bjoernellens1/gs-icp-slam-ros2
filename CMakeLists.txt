@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(four_dgs_slam)
+project(gs_icp_slam)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -20,12 +20,12 @@ find_package(nav_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 
 # Python source files configuration
-ament_python_install_package(four_dgs_slam)
+ament_python_install_package(gs_icp_slam)
 
 install(PROGRAMS
-  four_dgs_slam/node.py
+  gs_icp_slam/node.py
   DESTINATION lib/${PROJECT_NAME}
-  RENAME four_dgs_slam_node
+  RENAME gs_icp_slam_node
 )
 
 # Install launch files

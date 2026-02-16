@@ -50,9 +50,9 @@ def generate_launch_description():
     
     # 4DGS-SLAM node
     slam_node = Node(
-        package='4dgs_slam',
-        executable='4dgs_slam_node',
-        name='4dgs_slam_node',
+        package='gs_icp_slam',
+        executable='gs_icp_slam_node',
+        name='gs_icp_slam_node',
         output='screen',
         parameters=[],
         remappings=[

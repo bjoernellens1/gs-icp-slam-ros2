@@ -13,8 +13,8 @@ import os
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Note: This would include the 4dgs_slam_ros2 package imports
-# from 4dgs_slam_ros2.node import SLAMNode
+# Note: This would include the gs_icp_slam_ros2 package imports
+# from gs_icp_slam_ros2.node import SLAMNode
 
 
 class BasicExample(Node):

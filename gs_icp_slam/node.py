@@ -15,7 +15,7 @@ import os
 from scipy.spatial.transform import Rotation
 
 # Assuming GS_ICP_SLAM is importable from the same package
-from four_dgs_slam.gs_icp_slam import GS_ICP_SLAM
+from gs_icp_slam.gs_icp_slam import GS_ICP_SLAM
 
 class GSICPSLAMNode(Node):
     def __init__(self):

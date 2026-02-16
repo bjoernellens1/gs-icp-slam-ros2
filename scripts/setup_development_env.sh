@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #!/bin/bash
 #
-# Setup script for 4DGS-SLAM ROS2 environment
+# Setup script for GS-ICP-SLAM ROS2 environment
 #
 
 # Check for required tools
@@ -22,12 +22,12 @@ fi
 
 # Create conda environment
 echo "Setting up conda environment..."
-conda create -n 4dgs_slam python=3.8 \
+conda create -n gs_icp_slam python=3.8 \
     -y || { echo >&2 "Failed to create conda environment"; exit 1; }
 
-echo "Activating 4dgs_slam environment..."
+echo "Activating gs_icp_slam environment..."
 source $(conda info --base)/etc/profile.d/conda.sh
-conda activate 4dgs_slam
+conda activate gs_icp_slam
 
 # Install Python dependencies
 echo "Installing Python dependencies..."
@@ -50,10 +50,10 @@ apt-get install -y \
     ros-humble-image-transport
 
 # Install package in development mode
-echo "Installing 4dgs_slam package..."
-cd /home/bjoern/tmp/4dgs-slam-ros2
+echo "Installing gs_icp_slam package..."
+echo "Installing gs_icp_slam package..."
 pip install -e .
 
 echo "Setup completed successfully!"
-echo "To activate the environment: conda activate 4dgs_slam"
-echo "To run the package: ros2 run 4dgs_slam 4dgs_slam_node"
+echo "To activate the environment: conda activate gs_icp_slam"
+echo "To run the package: ros2 run gs_icp_slam gs_icp_slam_node"

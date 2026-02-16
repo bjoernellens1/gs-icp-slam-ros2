@@ -1,11 +1,12 @@
 {
-    "name": "4dgs-slam-ros2",
+    "name": "gs-icp-slam-ros2",
     "build": {
         "dockerfile": "../Dockerfile",
         "context": ".."
     },
     "runArgs": [
-        "--gpus", "all",
+        "--gpus",
+        "all",
         "--net=host",
         "--env=DISPLAY=${localEnv:DISPLAY}",
         "--env=QT_X11_NO_MITSHM=1",
@@ -20,7 +21,7 @@
             ]
         }
     },
-    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/src/4dgs-slam-ros2,type=bind",
-    "workspaceFolder": "/workspace/src/4dgs-slam-ros2",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/ws/src/gs_icp_slam,type=bind",
+    "workspaceFolder": "/ws/src/gs_icp_slam",
     "postCreateCommand": "bash -c 'source /opt/ros/humble/setup.bash && colcon build --symlink-install'"
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Complete installation and setup script for 4DGS-SLAM ROS2 package"""
+"""Complete installation and setup script for GS-ICP-SLAM ROS2 package"""
 
 import sys
 import os
@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 class InstallationScript:
-    """Comprehensive installation script for 4DGS-SLAM ROS2"""
+    """Comprehensive installation script for GS-ICP-SLAM ROS2"""
     
     def __init__(self, args=None):
         self.args = args or argparse.Namespace()
@@ -39,7 +39,7 @@ class InstallationScript:
         
         return True
     
-    def install_ros dependencies(self):
+    def install_ros_dependencies(self):
         """Install ROS2 dependencies"""
         print("\n=== Installing ROS 2 Dependencies ===")
         
@@ -121,8 +121,8 @@ class InstallationScript:
             return False
     
     def install_package(self):
-        """Install the 4DGS-SLAM package"""
-        print("\n=== Installing 4DGS-SLAM ROS2 Package ===")
+        """Install the GS-ICP-SLAM package"""
+        print("\n=== Installing GS-ICP-SLAM ROS2 Package ===")
         
         try:
             # Activate ROS environment
@@ -136,8 +136,7 @@ class InstallationScript:
             # Build the package
             print("Building package (this may take a few minutes)...")
             subprocess.run(
-                ["colcon", "build", "--packages-select", "4dgs_slam", "--symlink-install"],
-                cwd="/home/bjoern/tmp/4dgs-slam-ros2",
+                ["colcon", "build", "--packages-select", "gs_icp_slam", "--symlink-install"],
                 shell=True
             )
             print("✓ Package built")
@@ -146,11 +145,10 @@ class InstallationScript:
             subprocess.run(
                 ["source", "install/setup.bash"],
                 shell=True,
-                cwd="/home/bjoern/tmp/4dgs-slam-ros2",
                 stderr=subprocess.DEVNULL
             )
             
-            self.successes.append("4DGS-SLAM package installed")
+            self.successes.append("GS-ICP-SLAM package installed")
             return True
         except Exception as e:
             self.errors.append(f"Package installation failed: {e}")
@@ -160,7 +158,7 @@ class InstallationScript:
         """Download and setup pretrained models"""
         print("\n=== Setting up Pretrained Models ===")
         
-        pretrained_dir = Path("/home/bjoern/tmp/4dgs-slam-ros2/pretrained")
+        pretrained_dir = Path("pretrained")
         pretrained_dir.mkdir(exist_ok=True)
         
         # Download YOLOv9 model
@@ -178,10 +176,10 @@ class InstallationScript:
         print("\n=== Creating Working Directories ===")
         
         directories = [
-            "/tmp/4dgs_slam_ros2/checkpoints",
-            "/tmp/4dgs_slam_ros2/results",
-            "/tmp/4dgs_slam_ros2/keyframes",
-            "/tmp/4dgs_slam_ros2/logs"
+            "/tmp/gs_icp_slam_ros2/checkpoints",
+            "/tmp/gs_icp_slam_ros2/results",
+            "/tmp/gs_icp_slam_ros2/keyframes",
+            "/tmp/gs_icp_slam_ros2/logs"
         ]
         
         for directory in directories:
@@ -191,14 +189,14 @@ class InstallationScript:
     def create_demo_script(self):
         """Create demonstration scripts"""
         print("\n=== Creating Demonstration Scripts ===")
-        print("✓ Basic launch script available: 4dgs_slam_basic.launch.py")
-        print("✓ Bag playback script available: 4dgs_slam_with_bag.launch.py")
-        print("✓ Visualization script available: 4dgs_slam_visualization.launch.py")
+        print("✓ Basic launch script available: gs_icp_slam_basic.launch.py")
+        print("✓ Bag playback script available: gs_icp_slam_with_bag.launch.py")
+        print("✓ Visualization script available: gs_icp_slam_visualization.launch.py")
     
     def run(self):
         """Run complete installation process"""
         print("=" * 60)
-        print("4DGS-SLAM ROS2 Package Installation")
+        print("GS-ICP-SLAM ROS2 Package Installation")
         print("=" * 60)
         
         # System check
@@ -247,9 +245,9 @@ class InstallationScript:
         print("1. Source the environment:")
         print("   source install/setup.bash")
         print("\n2. Run SLAM with a bag file:")
-        print("   ros2 run 4dgs_slam 4dgs_slam_node")
+        print("   ros2 run gs_icp_slam gs_icp_slam_node")
         print("\n3. Launch with visualization:")
-        print("   ros2 launch 4dgs_slam 4dgs_slam_visualization.launch.py")
+        print("   ros2 launch gs_icp_slam gs_icp_slam_visualization.launch.py")
         print("\n4. See README.md for detailed usage instructions")
         
         return True
@@ -257,7 +255,7 @@ class InstallationScript:
 
 def main():
     """Main entry point"""
-    parser = argparse.ArgumentParser(description='Install and setup 4DGS-SLAM ROS2 package')
+    parser = argparse.ArgumentParser(description='Install and setup GS-ICP-SLAM ROS2 package')
     parser.add_argument('--pretrained', action='store_true', help='Download pretrained models')
     
     args = parser.parse_args()

@@ -51,7 +51,7 @@ class BagPlaybackExample:
         """Run SLAM with custom bag configuration"""
         commands = [
             "ros2 bag play your_bag.bag --clock -s 1",
-            "ros2 run 4dgs_slam 4dgs_slam_node",
+            "ros2 run gs_icp_slam gs_icp_slam_node",
         ]
         
         for cmd in commands:
@@ -86,7 +86,7 @@ class BagPlaybackExample:
 def main():
     """Main example runner"""
     
-    print("4DGS-SLAM ROS2 Package - Bag Playback Examples\n")
+    print("GS-ICP-SLAM ROS2 Package - Bag Playback Examples\n")
     
     example = BagPlaybackExample()
     

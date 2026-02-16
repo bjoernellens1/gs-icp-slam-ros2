@@ -1,154 +1,71 @@
-# 4D Gaussian Splatting SLAM - ROS2 Package
+# ROS2 Wrapper for GS-ICP-SLAM
 
-[![Python Version](https://img.shields.io/badge/python-3.8--3.11-blue.svg)](https://www.python.org/downloads/)
-[![ROS2 Version](https://img.shields.io/badge/ROS2-humble_/_blue.svg)](https://index.ros.org/doc/ros2/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Conventional Commits](https://img.shields.io/badge/commits-conventional-ff0000.svg)](https://www.conventionalcommits.org/)
+This package provides a ROS2 wrapper for the **GS-ICP-SLAM** system, enabling real-time 3D Gaussian Splatting SLAM with RGB-D input.
 
-A complete ROS2 implementation of the **4D Gaussian Splatting SLAM** system for dynamic scene reconstruction and mapping. This package provides real-time RGB-D SLAM with advanced Gaussian Splatting techniques for high-quality scene generation.
+> **Note**: The package name is `gs_icp_slam` (previously `four_dgs_slam`).
 
-## 🎯 Overview
+## Features
+- **Real-time SLAM**: Processes live RGB-D streams.
+- **ROS2 Integration**: Subscribes to standard `sensor_msgs/Image` and publishes `nav_msgs/Odometry` and TF.
+- **External Pose Support**: Can utilize external odometry (e.g., from VIO or wheel odometry) to bypass internal GICP registration.
+- **Rerun Integration**: Built-in support for `rerun.io` visualization.
+- **AMD ROCm Support**: Compatible with AMD GPUs (including Strix Halo) via Docker.
 
-The 4DGS-SLAM ROS2 package provides:
+## Architecture
+The system consists of a ROS2 node (`gs_icp_slam_node`) that interfaces with the GS-ICP-SLAM backend.
+1. **Input**: The node subscribes to RGB and Depth topics and synchronizes them (approximate sync).
+2. **Processing**: Images are pushed to a multiprocessing queue.
+3. **Tracking**: The `Tracker` process (part of GS-ICP-SLAM) consumes images, performs GICP registration (or uses external pose), and updates the 3D Gaussian Splatting map.
+4. **Keyframing**: Keyframes are selected based on overlap ratios and optical flow magnitude to ensure sufficient baseline for mapping.
+5. **Output**: The estimated camera pose is sent back to the ROS2 node via a queue and published as TF and Odometry.
 
-- **✅ Real-time SLAM**: Efficient RGB-D SLAM with high frame rate processing
-- **✅ 4D Gaussian Splatting**: High-quality dynamic scene reconstruction
-- **✅ ROS2 Integration**: Complete ROS2 node implementation with proper QoS settings
-- **✅ Flexible Configuration**: Comprehensive YAML configuration system
-- **✅ Visualization Support**: Integration with RViz2 for real-time monitoring
-- **✅ Multi-platform Support**: Works with both real cameras and ROS bag files
-- **✅ Production-ready**: Designed for real-world autonomous systems
-
-## 🚀 Quick Start
-
-### Installation
-
+### Launch
+To start the SLAM node:
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/4dgs_slam_ros2.git
-cd 4dgs_slam_ros2
-
-# Install the package
-python3 scripts/install.py --pretrained
+ros2 launch gs_icp_slam slam.launch.py camera_topic:=<your_rgb_topic> depth_topic:=<your_depth_topic> camera_info_topic:=<your_cam_info_topic>
 ```
 
-### Basic Usage
+### Parameters
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `camera_topic` | `/camera/rgb/image_raw` | RGB image topic |
+| `depth_topic` | `/camera/depth/image_raw` | Depth image topic (alligned to RGB, float or mm) |
+| `camera_info_topic` | `/camera/camera_info` | Camera intrinsics |
+| `use_external_pose` | `False` | Use external pose instead of GICP |
+| `pose_topic` | `/pose` | Topic for external pose (geometry_msgs/PoseStamped) |
+| `rerun_viewer` | `True` | Enable Rerun viewer |
+| `keyframe_th` | `0.7` | Keyframe selection threshold |
+| `verbose` | `False` | Enable verbose logging |
 
+### Topics
+**Subscribed:**
+- RGB Image: `sensor_msgs/Image` (rgb8)
+- Depth Image: `sensor_msgs/Image` (16UC1 or 32FC1)
+- Camera Info: `sensor_msgs/CameraInfo`
+- Pose (Optional): `geometry_msgs/PoseStamped`
+
+**Published:**
+- Odometry: `/odometry` (`nav_msgs/Odometry`)
+- TF: `odom` -> `camera_link`
+
+## Docker & AMD ROCm Support
+
+### Standard NVIDIA Docker
 ```bash
-# Run with default configuration
-ros2 run 4dgs_slam 4dgs_slam_node
-
-# Use launch files
-ros2 launch 4dgs_slam 4dgs_slam_basic.launch.py
-ros2 launch 4dgs_slam 4dgs_slam_with_bag.launch.py bag_file:=your_bag.bag
-ros2 launch 4dgs_slam 4dgs_slam_visualization.launch.py
+docker build -t gs-icp-slam-ros2 .
+docker run --gpus all --net=host -it gs-icp-slam-ros2
 ```
 
-## 📚 Documentation
-
-- [📖 README](README.md) - Complete package overview and usage guide
-- [📖 API Reference](docs/API.md) - Detailed API documentation
-- [📖 Tutorials](docs/TUTORIALS.md) - Step-by-step usage guides
-- [📖 Advanced Topics](docs/ADVANCED.md) - Optimization and advanced features
-- [📖 Development Guide](docs/DEVELOPMENT.md) - For contributors and developers
-- [📖 Contributing Guide](docs/CONTRIBUTING.md) - How to contribute
-
-## 🎥 Features
-
-### Core SLAM Features
-
-- **RGB-D SLAM**: Feature tracking, pose estimation, Gaussian field updates
-- **Dynamic Scene Handling**: Automatic dynamic object detection and filtering
-- **4D Gaussian Reconstruction**: High-fidelity scene representation
-- **Real-time Performance**: <100ms processing time on modern hardware
-- **Robust Tracking**: Multi-threaded processing pipeline
-
-### ROS2 Integration
-
-- **Standard Topics**: Odometry, poses, trajectories, keyframes
-- **Proper QoS**: Best-effort and reliable services
-- **Launch Support**: Multiple ready-to-use launch files
-- **RViz2 Integration**: Ready-to-use configuration
-- **Bag Playback**: Test with pre-recorded data
-
-### Advanced Features
-
-- **Custom Configuration**: Extensive YAML config system
-- **Performance Optimization**: Configurable for speed vs quality
-- **Cross-platform**: Supports GPU acceleration
-- **Monitoring**: Real-time statistics and diagnostics
-- **Checkpoints**: Save and resume reconstruction
-
-## 📋 Requirements
-
-### System Requirements
-
-- Ubuntu 20.04/22.04
-- ROS 2 Humble or newer (rolling recommended)
-- NVIDIA GPU with CUDA 11.x support
-- Python 3.8 or newer
-- 16GB+ RAM (recommended)
-
-### Dependencies
-
-```
-# ROS 2 packages
-- rclcpp
-- sensor_msgs
-- geometry_msgs
-- nav_msgs
-- cv_bridge
-
-# Python packages
-- numpy
-- opencv-python
-- scipy
-- pyyaml
-- torch (with CUDA 11.7)
-
-# Development tools
-- pytest
-- colcon
-- python3-dev (build utilities)
-```
-## 🐳 Docker Support
-        
-### Quick Start with Docker/Podman
-
-We provide a Dockerfile for easy deployment. You can use Docker or Podman.
-
-**Build the Image:**
-```bash
-# Using Podman (Recommended)
-podman build -t 4dgs-slam-ros2 .
-
-# Using Docker
-docker build -t 4dgs-slam-ros2 .
-```
-
-**Run the Container:**
-```bash
-# Using Podman with GPU support
-podman run --rm --gpus all --net=host -it 4dgs-slam-ros2
-
-# Using Docker with GPU support
-docker run --rm --gpus all --net=host -it 4dgs-slam-ros2
-```
-
-### CI/CD
-This repository includes a GitHub Actions workflow that automatically builds and pushes the Docker image to the GitHub Container Registry (GHCR) on every push to the `main` branch.
-
-### AMD GPU Support (ROCm / Strix Halo)
-
+### AMD ROCm (Strix Halo / Radeon)
 For users with AMD GPUs (including Strix Halo APUs), we provide a specific Dockerfile with ROCm 6.2 support.
 
 **Build the Image:**
 ```bash
-docker build -f Dockerfile.rocm -t 4dgs-slam-ros2:rocm-strix .
+docker build -f Dockerfile.rocm -t gs-icp-slam-ros2:rocm .
 ```
 
-**Run the Container (Strix Halo):**
-For Strix Halo (Ryzen AI Max 300 series), you may need to override the GFX version to mimic RDNA 3 (gfx1100) if native support isn't detected by PyTorch yet.
+**Run the Container (Strix Halo / RDNA 3):**
+For Strix Halo (Ryzen AI Max 300 series), you may need to override the GFX version if native support isn't detected.
 
 ```bash
 docker run --rm -it \
@@ -160,253 +77,25 @@ docker run --rm -it \
     --shm-size=8g \
     --security-opt seccomp=unconfined \
     -e HSA_OVERRIDE_GFX_VERSION=11.0.0 \
-    4dgs-slam-ros2:rocm-strix
+    gs-icp-slam-ros2:rocm
 ```
-*Note: If you encounter issues with the `render` group (e.g. "Unable to find group"), try using the group ID directly (e.g. `--group-add 992` if your `/dev/kfd` belongs to group 992), or ensure the group exists.*
-*Note: If Strix Halo detection fails or crashes, you can try `HSA_OVERRIDE_GFX_VERSION=11.0.0` (RDNA 3).*
+*Note: `HSA_OVERRIDE_GFX_VERSION=11.0.0` forces RDNA 3 compatibility, which is often required for Strix Halo.*
 
-## 🛠️ Installation
-## 🛠️ Installation
+## Performance & Limitations
 
-### 1. Clone and Setup
+### Framerate
+- **Minimum**: 20 FPS is recommended for reliable GICP tracking. Lower framerates may result in tracking loss due to large inter-frame motion.
+- **Optimization**: If running slowly, increase `downsample_rate` (default: 10) or reduce image resolution.
 
-```bash
-git clone https://github.com/yourusername/4dgs_slam_ros2.git
-cd 4dgs_slam_ros2
+### External Pose
+- If `use_external_pose` is `True`, the system bypasses the internal GICP registration for tracking.
+- This is useful if you have a reliable VIO or robot odometry and want to use GS-ICP-SLAM for mapping only.
+- Ensure the external pose is time-synchronized with the images. The node performs a simple timestamp check (< 0.05s diff).
 
-# Create conda environment (recommended)
-conda create -n 4dgs_slam python=3.8
-conda activate 4dgs_slam
+### Rerun Viewer
+- The `rerun` viewer provides real-time visualization of the camera trajectory, current point cloud, and keyframes.
+- It is launched automatically if `rerun_viewer` is `True`.
 
-# Install dependencies
-pip install -r requirements.txt
-source /opt/ros/humble/setup.bash
-
-# Build the package
-colcon build --packages-select 4dgs_slam --symlink-install
-
-# Source the workspace
-source install/setup.bash
-```
-
-### 2. Download Pretrained Models
-
-```bash
-# Download YOLOv9 for dynamic object detection
-mkdir -p pretrained
-cd pretrained
-wget https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e-seg.pt
-```
-
-## 🚦 Usage Examples
-
-### Basic SLAM with ROS Bag
-
-```bash
-# Terminal 1: Play your bag file
-ros2 bag play your_sequence.bag --clock
-
-# Terminal 2: Run SLAM
-ros2 run 4dgs_slam 4dgs_slam_node
-```
-
-### Real-time Camera Input
-
-```bash
-# If you have a camera node running
-ros2 run your_camera_package camera_publisher
-
-# Run SLAM in another terminal
-ros2 run 4dgs_slam 4dgs_slam_node
-```
-
-### Visualization
-
-```bash
-# Run complete system with RViz2
-ros2 launch 4dgs_slam 4dgs_slam_visualization.launch.py
-```
-
-### Custom Configuration
-
-```bash
-# Use custom config file
-cat > custom_config.yaml << 'EOF'
-slam:
-  num_gaussians: 150000
-  tracking_max_iter: 50
-EOF
-
-ros2 launch 4dgs_slam 4dgs_slam_with_bag.launch.py --config-file custom_config.yaml
-```
-
-## 🔧 Configuration
-
-### Main Configuration File
-
-See `config/slam_config.yaml` for complete configuration options.
-
-#### Key Parameters
-
-```yaml
-slam:
-  # SLAM settings
-  num_gaussians: 100000      # Number of Gaussians  
-  focal_length: 527.0        # Camera focal length
-  keyframe_distance: 0.5     # Keyframe selection distance
-  tracking_max_iter: 30      # Pose estimation iterations
-
-gpu:
-  cuda_device: 0             # GPU index
-  batch_size: 1024           # Processing batch size
-
-monitoring:
-  publish_odometry: true      # Publish odometry stream
-  publish_pose: true         # Publish current pose
-  publish_stats: true        # Publish statistics
-```
-
-## 📈 Performance
-
-### Benchmarks
-
-| Setting | Gaussians | Processing Time | Memory Usage | Quality |
-|---------|-----------|-----------------|--------------|---------|
-| Low | 30,000 | <20ms | ~250MB | Good for preview |
-| Medium | 75,000 | ~50ms | ~600MB | Balanced |
-| High | 150,000 | ~100ms | ~1.2GB | Best quality |
-
-### Optimization Tips
-
-```yaml
-# For real-time performance
-slam:
-  num_gaussians: 30000
-  tracking_max_iter: 15
-  keyframe_distance: 1.2
-  publish_statistics: false
-
-# For high-quality scenes
-slam:
-  num_gaussians: 150000
-  tracking_max_iter: 50
-  keyframe_distance: 0.3
-  print_memory_usage: true
-```
-
-## 📡 ROS2 Topics
-
-### Published Topics
-
-| Topic | Type | Description | QoS Profile |
-|-------|------|-------------|-------------|
-| `/slam/odometry` | `nav_msgs/Odometry` | SLAM odometry | Best-Effort |
-| `/slam/pose` | `geometry_msgs/PoseStamped` | Current pose | Reliable |
-| `/slam/trajectory` | `geometry_msgs/PoseStamped` | Trajectory points | Reliable |
-| `/slam/keyframes` | `sensor_msgs/Image` | Keyframe images | Best-Effort |
-| `/slam/statistics` | `std_msgs/String` | Performance stats | Reliable |
-| `/slam/generation_progress` | `std_msgs/String` | Generation status | Reliable |
-
-### Subscribed Topics
-
-| Topic | Type | Description |
-|-------|------|-------------|
-| `/camera/image_raw` | `sensor_msgs/Image` | RGB camera input |
-| `/camera/depth` | `sensor_msgs/Image` | Depth camera input |
-| `/camera/camera_info` | `sensor_msgs/CameraInfo` | Camera calibration |
-
-## 🐛 Troubleshooting
-
-For comprehensive troubleshooting guides, see [Troubleshooting](docs/TUTORIALS.md#troubleshooting-tutorial).
-
-### Common Issues
-
-**Issue**: Node connects but doesn't process frames
-```bash
-# Check if camera topics are published
-ros2 topic list | grep camera
-ros2 topic echo /camera/image_raw --once
-```
-
-**Issue**: High memory usage
-```yaml
-# Reduce Gaussian count and disable features
-slam:
-  num_gaussians: 30000
-monitoring:
-  publish_statistics: false
-```
-
-**Issue**: Poor SLAM accuracy
-```yaml
-# Improve tracking parameters
-slam:
-  focal_length: 527.0
-  tracking_max_iter: 50
-  keyframe_distance: 0.3
-```
-
-## 🧪 Testing
-
-```bash
-# Run tests
-colcon test --packages-select 4dgs_slam
-
-# Run with logging
-colcon test --packages-select 4dgs_slam --event-handlers console_direct+
-```
-
-## 📝 Citation
-
-If you use this package in your research, please cite:
-
-```bibtex
-@article{li20254d,
-  title={4{D} {G}aussian {S}platting {SLAM}},
-  author={Li, Yanyan and Fang, Youxu and Zhu, Zunjie and Li, Kunyi and Ding, Yong and Tombari, Federico},
-  journal={arXiv preprint arXiv:2503.16710},
-  year={2025}
-}
-```
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [Contributing Guide](docs/CONTRIBUTING.md) for details.
-
-### Development Guidelines
-
-- Follow PEP 8 style guide
-- Maintain >80% code coverage
-- Update documentation for changes
-- Run tests before submitting
-- Sign off contributions
-
-## 🙏 Acknowledgments
-
-- Original 4DGS-SLAM implementation: [Yanyan Li et al.](https://github.com/yanyan-li/4DGS-SLAM)
-- Based on Gaussian Splatting, GeoGaussian, SC-GS, and MonoGS
-- Used PyTorch and OpenCV for computer vision operations
-
-## 📄 License
-
-This package is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## 🗣️ Support
-
-- **GitHub Issues**: [Report bugs or request features](https://github.com/yourusername/4dgs_slam_ros2/issues)
-- **Documentation**: See [docs](docs) directory
-- **Community**: Join discussions on GitHub
-
-## 🔄 Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for recent updates and version history.
-
-## 📊 Project Statistics
-
-- **Star**: [![GitHub Stars](https://img.shields.io/github/stars/yourusername/4dgs_slam_ros2)](https://github.com/yourusername/4dgs_slam_ros2)
-- **Forks**: [![GitHub Forks](https://img.shields.io/github/forks/yourusername/4dgs_slam_ros2)](https://github.com/yourusername/4dgs_slam_ros2)
-
----
-
-**Note**: This package provides ROS2 integration for the 4D Gaussian Splatting SLAM system. Full functionality requires the external 4DGS-SLAM dependencies and GPU acceleration.# 4dgs-slam-ros2
-# 4dgs-slam-ros2
+## Troubleshooting
+- **Tracking Lost**: If the system loses tracking, it currently does not have a relocalization module. You may need to restart the node.
+- **High Latency**: Reduce image resolution or increase `downsample_rate`. Ensure your GPU is utilized (check `nvidia-smi` or `rocm-smi`).

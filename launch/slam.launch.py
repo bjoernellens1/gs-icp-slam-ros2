@@ -7,7 +7,7 @@ import os
 
 def generate_launch_description():
     # Get package directory
-    pkg_share = get_package_share_directory('four_dgs_slam')
+    pkg_share = get_package_share_directory('gs_icp_slam')
 
     # Launch arguments
     dataset_path_arg = DeclareLaunchArgument(
@@ -57,8 +57,8 @@ def generate_launch_description():
 
     # Node
     slam_node = Node(
-        package='four_dgs_slam',
-        executable='four_dgs_slam_node',
+        package='gs_icp_slam',
+        executable='gs_icp_slam_node',
         name='gs_icp_slam_node',
         output='screen',
         parameters=[{

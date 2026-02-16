@@ -1,4 +1,4 @@
-# 4DGS-SLAM ROS2 Package - Advanced Topics
+# GS-ICP-SLAM ROS2 Package - Advanced Topics
 
 This document covers advanced topics and optimization techniques for using the 4D Gaussian Splatting SLAM system with ROS2.
 
@@ -729,15 +729,15 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy package
-COPY 4dgs_slam_ros2 /opt/4dgs_slam_ros2
-WORKDIR /opt/4dgs_slam_ros2
+COPY gs_icp_slam_ros2 /opt/gs_icp_slam_ros2
+WORKDIR /opt/gs_icp_slam_ros2
 
 # Setup entrypoint
 RUN cat > /entrypoint.sh << 'EOF'
 #!/bin/bash
 set -e
 source /opt/ros/humble/setup.bash
-ros2 run 4dgs_slam 4dgs_slam_node "$@"
+ros2 run gs_icp_slam gs_icp_slam_node "$@"
 EOF
 RUN chmod +x /entrypoint.sh
 
@@ -751,8 +751,8 @@ services:
   slam-node:
     build: .
     volumes:
-      - ./config:/opt/4dgs_slam_ros2/config
-      - ./data:/opt/4dgs_slam_ros2/data
+      - ./config:/opt/gs_icp_slam_ros2/config
+      - ./data:/opt/gs_icp_slam_ros2/data
     environment:
       - GPU_DEVICE=0
       - CUDA_VISIBLE_DEVICES=0
@@ -843,4 +843,4 @@ def health_check(slam_node):
     return health_status
 ```
 
-For complete information about the 4DGS-SLAM ROS2 package, refer to the main [README](../README.md), [API Reference](./API.md), and [Tutorials](./TUTORIALS.md).
+For complete information about the GS-ICP-SLAM ROS2 package, refer to the main [README](../README.md), [API Reference](./API.md), and [Tutorials](./TUTORIALS.md).

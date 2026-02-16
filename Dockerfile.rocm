@@ -52,18 +52,18 @@ RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
 
 # Create workspace
 WORKDIR /workspace
-RUN mkdir -p src/4dgs-slam-ros2
+RUN mkdir -p src/gs-icp-slam-ros2
 
 # Copy source code
-COPY . /workspace/src/4dgs-slam-ros2/
+COPY . /workspace/src/gs-icp-slam-ros2/
 
 # Build the workspace
 RUN . /opt/ros/humble/setup.sh && \
     colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 
 # Download pretrained YOLOv9 model
-RUN mkdir -p /workspace/src/4dgs-slam-ros2/pretrained && \
-    wget https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e-seg.pt -P /workspace/src/4dgs-slam-ros2/pretrained
+RUN mkdir -p /workspace/src/gs-icp-slam-ros2/pretrained && \
+    wget https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e-seg.pt -P /workspace/src/gs-icp-slam-ros2/pretrained
 
 # Set entrypoint
 COPY entrypoint.sh /entrypoint.sh

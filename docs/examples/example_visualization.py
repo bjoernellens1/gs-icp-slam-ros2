@@ -163,7 +163,7 @@ Panels:
 def main():
     """Main example runner"""
     
-    print("4DGS-SLAM Visualization Examples\n")
+    print("GS-ICP-SLAM Visualization Examples\n")
     
     example = VisualizationExample()
     

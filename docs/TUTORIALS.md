@@ -1,4 +1,4 @@
-# 4DGS-SLAM ROS2 Package - Tutorials
+# GS-ICP-SLAM ROS2 Package - Tutorials
 
 This document provides step-by-step tutorials for getting started with the 4D Gaussian Splatting SLAM system using ROS2.
 
@@ -20,23 +20,23 @@ This document provides step-by-step tutorials for getting started with the 4D Ga
 
 ```bash
 # 1. Navigate to the package
-cd ~/dev/4dgs_slam_ros2
+cd ~/dev/gs_icp_slam_ros2
 
 # 2. Activate the conda environment
 source $(conda info --base)/etc/profile.d/conda.sh
-conda activate 4dgs_slam
+conda activate gs_icp_slam
 
 # 3. Source ROS 2 environment
 source /opt/ros/humble/setup.bash
 
 # 4. Build the package (single time)
-colcon build --packages-select 4dgs_slam --symlink-install
+colcon build --packages-select gs_icp_slam --symlink-install
 
 # 5. Source the package
 source install/setup.bash
 
 # 6. Check if everything is working
-python3 -c "from 4dgs_slam_ros2 import SLAMNode; print('Success!')"
+python3 -c "from gs_icp_slam_ros2 import SLAMNode; print('Success!')"
 ```
 
 **Expected Output:**
@@ -53,7 +53,7 @@ Success!
 ros2 run your_camera_package camera_publisher
 
 # Terminal 2: Start SLAM node
-ros2 run 4dgs_slam 4dgs_slam_node
+ros2 run gs_icp_slam gs_icp_slam_node
 ```
 
 **Expected Behavior:**
@@ -69,10 +69,10 @@ ros2 run 4dgs_slam 4dgs_slam_node
 
 ```bash
 # Launch basic SLAM node
-ros2 launch 4dgs_slam 4dgs_slam_basic.launch.py
+ros2 launch gs_icp_slam gs_icp_slam_basic.launch.py
 
 # With custom camera topics
-ros2 launch 4dgs_slam 4dgs_slam_basic.launch.py --ros-args \
+ros2 launch gs_icp_slam gs_icp_slam_basic.launch.py --ros-args \
     -r image:=/custom/image \
     -r depth:=/custom/depth
 ```
@@ -89,7 +89,7 @@ ros2 bag record /camera/image_raw /camera/depth --duration 30
 ros2 bag play test_bag.bag --clock
 
 # 3. Run SLAM in separate terminal
-ros2 run 4dgs_slam 4dgs_slam_node
+ros2 run gs_icp_slam gs_icp_slam_node
 
 # 4. Monitor output in another terminal
 ros2 topic echo /slam/odometry
@@ -120,7 +120,7 @@ monitoring:
 EOF
 
 # Run with custom config
-ros2 launch 4dgs_slam 4dgs_slam_with_bag.launch.py \
+ros2 launch gs_icp_slam gs_icp_slam_with_bag.launch.py \
     --config-file my_config.yaml \
     bag_file:=your_bag.bag
 ```
@@ -147,7 +147,7 @@ monitoring:
 EOF
 
 # Use performance config
-ros2 launch 4dgs_slam 4dgs_slam_with_bag.launch.py \
+ros2 launch gs_icp_slam gs_icp_slam_with_bag.launch.py \
     --config-file performance_config.yaml
 ```
 
@@ -159,7 +159,7 @@ ros2 launch 4dgs_slam 4dgs_slam_with_bag.launch.py \
 
 ```bash
 # For long-term mapping sessions
-ros2 launch 4dgs_slam 4dgs_slam_visualization.launch.py
+ros2 launch gs_icp_slam gs_icp_slam_visualization.launch.py
 
 # In a separate terminal, control your robot
 ros2 run teleop_twist_keyboard teleop_twist_keyboard
@@ -189,7 +189,7 @@ slam:
 EOF
 
 # Use with SLAM
-ros2 launch 4dgs_slam 4dgs_slam_with_bag.launch.py \
+ros2 launch gs_icp_slam gs_icp_slam_with_bag.launch.py \
     --config-file dynamic_config.yaml
 ```
 
@@ -211,7 +211,7 @@ ros2 bag record \
 ros2 bag play test_recording.bag --clock
 
 # 3. Run SLAM
-ros2 run 4dgs_slam 4dgs_slam_node
+ros2 run gs_icp_slam gs_icp_slam_node
 
 # 4. Compare to standard SLAM
 # Repeat steps 2-3 without SLAM to compare
@@ -262,7 +262,7 @@ ros2 run rviz2 rviz2
 
 ```bash
 # Terminal 1: Run SLAM
-ros2 run 4dgs_slam 4dgs_slam_node
+ros2 run gs_icp_slam gs_icp_slam_node
 
 # Terminal 2: Monitor odometry
 ros2 topic echo /slam/odometry
@@ -292,7 +292,7 @@ ros2 topic list | grep camera
 ros2 topic echo /camera/image_raw --once
 
 # Remap if necessary
-ros2 run 4dgs_slam 4dgs_slam_node -r image:=/remapped/topic
+ros2 run gs_icp_slam gs_icp_slam_node -r image:=/remapped/topic
 ```
 
 **Issue 2: Memory usage too high**
@@ -330,7 +330,7 @@ slam:
 
 ```bash
 # Enable verbose logging
-ros2 run 4dgs_slam 4dgs_slam_node --ros-args \
+ros2 run gs_icp_slam gs_icp_slam_node --ros-args \
     --log-level debug
 
 # Python debug mode (in your code)
@@ -345,10 +345,10 @@ system:
 
 ```bash
 # Step 1: Setup (one-time)
-cd ~/dev/4dgs_slam_ros2
-conda activate 4dgs_slam
+cd ~/dev/gs_icp_slam_ros2
+conda activate gs_icp_slam
 source /opt/ros/humble/setup.bash
-colcon build --packages-select 4dgs_slam --symlink-install
+colcon build --packages-select gs_icp_slam --symlink-install
 source install/setup.bash
 
 # Step 2: Record test data (optional)
@@ -371,7 +371,7 @@ EOF
 
 # Step 4: Run experiment
 ros2 bag play my_data.bag --clock
-ros2 launch 4dgs_slam 4dgs_slam_with_bag.launch.py \
+ros2 launch gs_icp_slam gs_icp_slam_with_bag.launch.py \
     --config-file my_experiment_config.yaml
 
 # Step 5: Analyze results
