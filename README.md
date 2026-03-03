@@ -57,7 +57,9 @@ docker run --gpus all --net=host -it gs-icp-slam-ros2
 ```
 
 ### AMD ROCm (Strix Halo / Radeon)
-For users with AMD GPUs (including Strix Halo APUs), we provide a specific Dockerfile with ROCm 6.2 support.
+For users with AMD GPUs (including Strix Halo APUs), we provide a specific Dockerfile with ROCm support.
+The image now uses `gsplat` as the Gaussian rasterization backend instead of building the legacy CUDA-only `diff-gaussian-rasterization` and `simple-knn` submodules.
+The helper scripts `build_rocm.sh` and `run_docker.sh` automatically detect and support **Podman** if installed.
 
 **Build the Image:**
 ```bash
@@ -68,18 +70,21 @@ docker build -f Dockerfile.rocm -t gs-icp-slam-ros2:rocm .
 For Strix Halo (Ryzen AI Max 300 series), you may need to override the GFX version if native support isn't detected.
 
 ```bash
+# Recommended: Use the helper script which handles groups and IPC flags automatically
+./run_docker.sh
+
+# Or run manually (note: --shm-size removed as --ipc=host is used):
 docker run --rm -it \
     --device=/dev/kfd \
     --device=/dev/dri \
     --group-add video \
-    --group-add render \
     --ipc=host \
-    --shm-size=8g \
     --security-opt seccomp=unconfined \
     -e HSA_OVERRIDE_GFX_VERSION=11.0.0 \
     gs-icp-slam-ros2:rocm
 ```
 *Note: `HSA_OVERRIDE_GFX_VERSION=11.0.0` forces RDNA 3 compatibility, which is often required for Strix Halo.*
+*Note: Requires `video` and optionally `render` groups. The `run_docker.sh` script checks for `render` group existence.*
 
 ## Performance & Limitations
 

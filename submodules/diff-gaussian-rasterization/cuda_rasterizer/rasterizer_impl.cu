@@ -16,7 +16,9 @@
 #include <numeric>
 #include <cuda.h>
 #include "cuda_runtime.h"
+#if !defined(USE_ROCM) && !defined(__HIP_PLATFORM_AMD__)
 #include "device_launch_parameters.h"
+#endif
 #include <cub/cub.cuh>
 #include <cub/device/device_radix_sort.cuh>
 #define GLM_FORCE_CUDA

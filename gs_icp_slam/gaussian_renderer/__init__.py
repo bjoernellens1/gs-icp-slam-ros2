@@ -11,9 +11,38 @@
 
 import torch
 import math
-from diff_gaussian_rasterization import GaussianRasterizationSettings, GaussianRasterizer
 from scene.gaussian_model import GaussianModel
 from utils.sh_utils import eval_sh
+
+
+_RASTERIZER_BACKEND = None
+
+
+def _load_rasterizer_backend():
+    global _RASTERIZER_BACKEND
+    if _RASTERIZER_BACKEND is not None:
+        return _RASTERIZER_BACKEND
+
+    candidates = [
+        ("diff_gaussian_rasterization", ("GaussianRasterizationSettings", "GaussianRasterizer")),
+        ("gsplat.cuda_legacy._wrapper", ("GaussianRasterizationSettings", "GaussianRasterizer")),
+        ("gsplat.cuda._wrapper", ("GaussianRasterizationSettings", "GaussianRasterizer")),
+        ("gsplat._wrapper", ("GaussianRasterizationSettings", "GaussianRasterizer")),
+    ]
+
+    last_error = None
+    for module_name, attrs in candidates:
+        try:
+            module = __import__(module_name, fromlist=list(attrs))
+            _RASTERIZER_BACKEND = tuple(getattr(module, attr) for attr in attrs)
+            return _RASTERIZER_BACKEND
+        except Exception as err:
+            last_error = err
+
+    raise ImportError(
+        "No supported Gaussian rasterizer backend was found. "
+        "Install gsplat with the INRIA compatibility wrapper, or install diff_gaussian_rasterization."
+    ) from last_error
 
 def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, scaling_modifier = 1.0, override_color = None):
     """
@@ -22,6 +51,8 @@ def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, 
     Background tensor (bg_color) must be on GPU!
     """
  
+    GaussianRasterizationSettings, GaussianRasterizer = _load_rasterizer_backend()
+
     # Create zero tensor. We will use it to make pytorch return gradients of the 2D (screen-space) means
     screenspace_points = torch.zeros_like(pc.get_xyz, dtype=pc.get_xyz.dtype, requires_grad=True, device="cuda") + 0
     try:
@@ -119,6 +150,8 @@ def render_2(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor
     Background tensor (bg_color) must be on GPU!
     """
  
+    GaussianRasterizationSettings, GaussianRasterizer = _load_rasterizer_backend()
+
     # Create zero tensor. We will use it to make pytorch return gradients of the 2D (screen-space) means
     screenspace_points = torch.zeros_like(pc.get_xyz, dtype=pc.get_xyz.dtype, requires_grad=True, device="cuda") + 0
     try:
@@ -223,6 +256,8 @@ def render_3(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor
     Background tensor (bg_color) must be on GPU!
     """
  
+    GaussianRasterizationSettings, GaussianRasterizer = _load_rasterizer_backend()
+
     # Create zero tensor. We will use it to make pytorch return gradients of the 2D (screen-space) means
     screenspace_points = torch.zeros_like(pc.get_xyz, dtype=pc.get_xyz.dtype, requires_grad=True, device="cuda") + 0
     try:

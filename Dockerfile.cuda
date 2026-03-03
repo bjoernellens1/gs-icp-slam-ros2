@@ -1,0 +1,83 @@
+
+# GS ICP SLAM ROS2 Wrapper - Dockerfile (CUDA / NVIDIA GPU)
+
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
+# Install basics + ROS2 Humble
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    curl \
+    git \
+    wget \
+    build-essential \
+    cmake \
+    python3-pip \
+    python3-dev \
+    libpcl-dev \
+    libopenblas-dev \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    ninja-build \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ROS2 Humble
+RUN add-apt-repository universe \
+    && curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null \
+    && apt-get update && apt-get install -y \
+    ros-humble-desktop \
+    ros-humble-ament-cmake-python \
+    ros-humble-cv-bridge \
+    ros-humble-perception-pcl \
+    && rm -rf /var/lib/apt/lists/*
+
+# CUDA arch list for extension builds (covers Maxwell through Ampere)
+ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0 7.5 8.0 8.6+PTX"
+
+# Upgrade pip and install compatible setuptools
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install "setuptools<70.0.0" --force-reinstall --no-cache-dir
+
+# Install PyTorch with CUDA 11.8 support
+RUN pip3 install typing_extensions && \
+    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 --no-cache-dir
+
+COPY requirements.txt /tmp/requirements.txt
+# Remove torch lines from requirements to avoid conflict/reinstall
+RUN sed -i '/torch/d' /tmp/requirements.txt && \
+    pip3 install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.txt
+
+# Source ROS 2 setup
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
+
+# Create workspace
+WORKDIR /workspace
+RUN mkdir -p src/gs-icp-slam-ros2
+
+# Copy source code
+COPY . /workspace/src/gs-icp-slam-ros2/
+
+# Install gaussian splatting backend + fast_gicp
+RUN pip3 install --no-build-isolation \
+    --no-deps \
+    gsplat \
+    /workspace/src/gs-icp-slam-ros2/submodules/fast_gicp
+
+# Build the ROS2 workspace
+RUN . /opt/ros/humble/setup.sh && \
+    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+# Download pretrained YOLOv9 model
+RUN mkdir -p /workspace/src/gs-icp-slam-ros2/pretrained && \
+    wget https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov9e-seg.pt -P /workspace/src/gs-icp-slam-ros2/pretrained
+
+# Set entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["bash"]

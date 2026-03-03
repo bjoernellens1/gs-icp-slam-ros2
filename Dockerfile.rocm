@@ -13,17 +13,23 @@ RUN apt-get -o APT::Sandbox::User=root -o Dir::Cache::archives="/tmp/" update &&
     wget \
     git \
     python3-pip \
+    python3-dev \
     ros-humble-ament-cmake-python \
     software-properties-common \
     libopenblas-dev \
     gpg \
+    build-essential \
+    cmake \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    ninja-build \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ROCm 6.2 (latest stable for Ubuntu 22.04 at time of writing)
+# Install ROCm 7.2
 # Add ROCm repository
 RUN mkdir --parents --mode=0755 /etc/apt/keyrings && \
     wget https://repo.radeon.com/rocm/rocm.gpg.key -O - | gpg --dearmor | tee /etc/apt/keyrings/rocm.gpg > /dev/null && \
-    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/6.2 jammy main" | tee /etc/apt/sources.list.d/rocm.list && \
+    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/7.2 jammy main" | tee /etc/apt/sources.list.d/rocm.list && \
     printf 'Package: *\nPin: release o=repo.radeon.com\nPin-Priority: 600' | tee /etc/apt/preferences.d/rocm-pin-600 && \
     apt-get -o APT::Sandbox::User=root -o Dir::Cache::archives="/tmp/" update && \
     apt-get -o APT::Sandbox::User=root -o Dir::Cache::archives="/tmp/" install -y --no-install-recommends \
@@ -31,21 +37,63 @@ RUN mkdir --parents --mode=0755 /etc/apt/keyrings && \
     rocm-libs \
     && rm -rf /var/lib/apt/lists/*
 
-# Add ROCm to PATH
+# Add ROCm to PATH and set ROCm environment
 ENV PATH=$PATH:/opt/rocm/bin:/opt/rocm/llvm/bin
+ENV ROCM_HOME=/opt/rocm
+# ROCm 7.2 supports gfx1151 (Strix Halo), gfx950, gfx1200, gfx1201 in addition to older arches.
+ENV PYTORCH_ROCM_ARCH="gfx900;gfx906;gfx908;gfx90a;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx950;gfx1200;gfx1201"
+# Use all CPU cores for ninja/cmake parallel compilation
+ENV MAX_JOBS=0
 
 # Install Python dependencies
-# Upgrade pip first
-RUN python3 -m pip install --upgrade pip
+# Upgrade pip and install compatible setuptools
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install "setuptools<70.0.0" --force-reinstall --no-cache-dir
 
-# Install PyTorch with ROCm 6.1 support (compatible with ROCm 6.2 driver)
-# PyTorch 2.4.0+ is required for ROCm 6.1 support
-RUN pip3 install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/rocm6.1
+# Replace /opt/rocm/bin/hipcc in-place with a wrapper that strips
+# -Xcompiler -fno-gnu-unique pairs (and bare -fno-gnu-unique).
+# PyTorch's cpp_extension calls hipcc via its absolute path, so a PATH-based
+# wrapper does not work — we must patch the binary location itself.
+# NOTE: ROCm must be installed before this step.
+RUN mv /opt/rocm/bin/hipcc /opt/rocm/bin/hipcc.orig && \
+    cat > /opt/rocm/bin/hipcc <<'WRAPPER'
+#!/bin/bash
+# Strip -Xcompiler -fno-gnu-unique (pair) and bare -fno-gnu-unique from args.
+# -fno-gnu-unique is a GCC-only flag; ROCm 7.2 clang++ rejects it.
+args=()
+i=0
+argv=("$@")
+n=${#argv[@]}
+while [ $i -lt $n ]; do
+    arg="${argv[$i]}"
+    # Drop bare -fno-gnu-unique
+    if [ "$arg" = "-fno-gnu-unique" ]; then
+        i=$((i+1)); continue
+    fi
+    # Drop -Xcompiler -fno-gnu-unique pair
+    if [ "$arg" = "-Xcompiler" ] && \
+       [ $((i+1)) -lt $n ] && \
+       [ "${argv[$((i+1))]}" = "-fno-gnu-unique" ]; then
+        i=$((i+2)); continue
+    fi
+    args+=("$arg")
+    i=$((i+1))
+done
+exec /opt/rocm/bin/hipcc.orig "${args[@]}"
+WRAPPER
+RUN chmod +x /opt/rocm/bin/hipcc
+
+# Install PyTorch with ROCm nightly (gfx1151/Strix Halo requires nightly builds;
+# stable rocm7.2 index does not include gfx1151 wheels)
+RUN pip3 install typing_extensions && \
+    pip3 install torch torchvision torchaudio \
+        --index-url https://download.pytorch.org/whl/nightly/rocm7.2 \
+        --pre --force-reinstall --no-cache-dir --no-deps
 
 COPY requirements.txt /tmp/requirements.txt
 # Remove the torch + cu117 lines from requirements.txt to avoid conflict/reinstall
 RUN sed -i '/torch/d' /tmp/requirements.txt && \
-    pip3 install -r /tmp/requirements.txt && rm /tmp/requirements.txt
+    pip3 install --no-cache-dir --ignore-installed -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
 # Source ROS 2 setup
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
@@ -57,9 +105,17 @@ RUN mkdir -p src/gs-icp-slam-ros2
 # Copy source code
 COPY . /workspace/src/gs-icp-slam-ros2/
 
+# Install ROCm-safe gaussian splatting backend + fast_gicp
+# MAX_JOBS=0 means "use all cores" for extension builds invoked by pip
+RUN MAX_JOBS=$(nproc) pip3 install --no-build-isolation \
+    --no-deps \
+    gsplat \
+    /workspace/src/gs-icp-slam-ros2/submodules/fast_gicp
+
 # Build the workspace
 RUN . /opt/ros/humble/setup.sh && \
-    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
 
 # Download pretrained YOLOv9 model
 RUN mkdir -p /workspace/src/gs-icp-slam-ros2/pretrained && \
