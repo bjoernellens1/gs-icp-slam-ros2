@@ -40,8 +40,8 @@ RUN pip3 install typing_extensions && \
     pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --no-cache-dir
 
 COPY requirements.txt /tmp/requirements.txt
-# Remove torch lines from requirements to avoid conflict/reinstall
-RUN sed -i '/torch/d' /tmp/requirements.txt && \
+# Remove only torch/torchvision/torchaudio lines to avoid conflict/reinstall
+RUN sed -i '/^torch==/d; /^torchvision==/d; /^torchaudio==/d' /tmp/requirements.txt && \
     pip3 install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
 # Source ROS 2 setup
